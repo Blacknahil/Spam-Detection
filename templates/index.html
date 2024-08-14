@@ -1,0 +1,162 @@
+<!-- templates/index.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Spam Detection</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background-color: #EBC999;
+            margin: 20px;
+            flex-direction:column;
+        }
+        .container {
+            text-align: center;
+            background-color: #8CA9D3;
+            padding: 1em;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-size: 2em;
+            margin-bottom: 0.5em;
+        }
+        #header-text{
+            font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+            font-size:4.5em;
+            font-style: italic;
+        }
+        textarea {
+            width: 95%;
+            padding: 10px;
+            font-size: 1.2em;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-bottom: 1em;
+            background-color: #F0EFF4
+
+        }
+        input[type="submit"] {
+            padding: 10px 20px;
+            font-size: 1.5em;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        #result {
+            margin-top: 1em;
+            font-size: 1.2em;
+            transition: all 0.3s ease-in-out;
+            transform-style: preserve-3d;
+
+        }
+        .card {
+            perspective: 1000px;
+            background-color:;
+        }
+        .card-content {
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            background-color:#FEBEB0;
+            box-sizing: content-box;
+        }
+        .card-content.show-back {
+            transform: rotateY(180deg);
+        }
+        .card-face {
+            width: 100%;
+            backface-visibility: hidden;
+            padding: 5px;
+            box-sizing: border-box;
+            border-radius: 10px;
+
+        }
+        .card-face.back {
+            transform: rotateY(180deg);
+        }
+        .history {
+            margin-top: 2em;
+        }
+        .history-card {
+            padding: 1em;
+            margin-bottom: 1em;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: #e9ecef;
+            text-align: left;
+        }
+        .history-card p {
+            margin: 0.5em 0;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="header-text"> A Spam Detection System  </h1>
+    <div class="container">
+        <h1>Enter the Email You want to check.</h1>
+        <form id="spam-form" action="/predict" method="post">
+            <label for="message">Email message:</label>
+            <textarea id="message" name="message" rows="10" cols="70"></textarea>
+            <br><br>
+            <input type="submit" value="Check">
+        </form>
+
+
+        <div id="result" class="card">
+            <div class="card-content">
+                <div class="card-face front">
+                    <p>Please enter a message to check if it's spam or ham.</p>
+                </div>
+                <div class="card-face back">
+                    <p id="prediction-result"></p>
+                </div>
+            </div>
+        </div>
+
+        <div id="history" class="history"></div>
+    </div>
+
+
+    <script>
+        document.querySelector('form').onsubmit = async function (event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const response = await fetch(form.action, {
+                method: form.method,
+                body: formData
+            });
+            const result = await response.json();
+            const resultElement = document.getElementById('result');
+            const resultContent = document.querySelector('.card-content');
+            const predictionElement = document.getElementById('prediction-result');
+
+            predictionElement.innerHTML = `Prediction: ${result.prediction} <br> Probability: ${result.probability} %`;
+            resultContent.classList.add('show-back');
+
+            const historyElement = document.getElementById('history');
+            const newCard = document.createElement('div');
+            newCard.className = 'history-card';
+            newCard.innerHTML = `
+                <p><strong>Message:</strong> ${formData.get('message')}</p>
+                <p><strong>Prediction:</strong> ${result.prediction}</p>
+                <p><strong>Probability:</strong> ${result.probability} %</p>
+            `;
+            historyElement.prepend(newCard);
+
+            // Reset the form
+            form.reset();
+        };
+    </script>
+</body>
+</html>
